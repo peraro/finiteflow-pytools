@@ -1,0 +1,24 @@
+*~
+\#*\#
+.*project
+.settings/*
+*.o
+*.la
+*.lo
+*.so
+*.dylib
+*.mod
+*.pyc
+*.tar.gz
+*.out
+.DS_Store
+*.json
+
+run*.sh
+
+*.out*
+*.dat
+*.fflow
+
+# Generated files
+examples/ibp_reduction/ibps/*
