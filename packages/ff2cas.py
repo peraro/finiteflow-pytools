@@ -159,7 +159,7 @@ class CAS:
 
     def LSolveDict(self,graph,node,variables,graphout):
         '''LSolveDict(graph,node,variables,graphout) where node is a
-        sparse solver node of the specified graph and graphout is its
+        linear solver node of the specified graph and graphout is its
         output converted to the CAS, returns a dictionary with the
         solution.  The keys of the dictionary are the dependent
         variables, i.e. those for which a solution was found.
@@ -171,7 +171,8 @@ class CAS:
         depvars = list(variables[idx] for idx in depvars)
         idx=0
         extvars = variables + [1]
-        if _ff.LSolveOutputIsSparse(graph,node):
+        sparse = _ff.IsSparseLSolve(graph,node)
+        if sparse and _ff.LSolveOutputIsSparse(graph,node):
             for i in range(len(depvars)):
                 indepvars = _ff.LSolveIndepVars(graph,node,i)
                 indeplen = len(indepvars)
@@ -195,6 +196,12 @@ class CAS:
                                              for c,v in zip(rhsccs,indepvars)))
                 idx+=indeplen
 
+            if not sparse:
+                # DenseLSolve nodes don't return zeroes
+                zerovars = _ff.LSolveZeroVars(graph,node)
+                for var in zerovars:
+                    sol[extvars[var]] = self.Add()
+
         return sol
 
 
@@ -216,13 +223,17 @@ class CAS:
                 parameters.update(self.VariablesIn(eq)-varset)
             parameters = list(parameters)
 
+        if not needed_vars is None:
+            needed_vars = _ff.PositionsInList(needed_vars, variables)
+
         with _ff.GraphContextWithInput(len(parameters)) as (g,inp):
 
             if len(parameters) > 0:
                 (cols,ccs) = self.ToAnalyticSparseLSolve(parameters,
                                                          eqs, variables)
                 ls = _ff.AlgAnalyticSparseLSolve(g, inp,
-                                                 len(variables), cols, ccs)
+                                                 len(variables), cols, ccs,
+                                                 needed_vars=needed_vars)
             else:
                 (cols,ccs) = self.ToNumericSparseLSolve(eqs, variables)
                 ls = _ff.AlgNumericSparseLSolve(g, len(variables), cols, ccs,
@@ -245,6 +256,99 @@ class CAS:
             if mark_and_sweep:
                 _ff.LSolveMarkAndSweepEqs(g, ls)
                 _ff.LSolveDeleteUnneededEqs(g, ls)
+
+            if len(parameters) > 0:
+                rec = _ff.ReconstructFunction(g,
+                                              start_mod=start_mod,
+                                              max_primes=max_primes,
+                                              max_deg=max_deg,
+                                              dbginfo=dbginfo,
+                                              polymethod=polymethod,
+                                              n_threads=n_threads)
+                if not type(rec) is _ff.RatFunList:
+                    return rec
+                rec = self.FromRatFunList(parameters, rec)
+            else:
+                rec = _ff.ReconstructNumeric(g,
+                                             start_mod=start_mod,
+                                             max_primes=max_primes,
+                                             dbginfo=dbginfo,
+                                             n_threads=n_threads)
+                if not type(rec) is list:
+                    return rec
+                rec = self.FromRatNumList(rec)
+
+            return self.LSolveDict(g,ls,variables,rec)
+
+
+    def _ToDenseLSolveCoeffs(self, getclist, eqs, variables):
+        var2col = dict(zip(variables,range(len(variables))))
+        coeffs = []
+        cols = []
+        n_vars = len(variables)
+        zero = self.Add()
+        for lhs,rhs in self.LCoefficientLists(variables, eqs):
+            thisrowcols = [zero for _ in range(n_vars+1)]
+            for x,cc in lhs.items():
+                thisrowcols[var2col[x]] = cc
+            if not rhs.is_zero:
+                thisrowcols[n_vars] = rhs
+            coeffs.extend(cc for cc in thisrowcols)
+        return getclist(coeffs)
+
+    def ToAnalyticDenseLSolve(self, params, eqs, variables):
+        '''Returns coeffs defined as the inputs required by
+        fflow.AlgAnalyticDenseLSolve.'''
+        def getclist(ccs):
+            return self.ToRatFunList(params, ccs)
+        return self._ToDenseLSolveCoeffs(getclist, eqs, variables)
+
+    def ToNumericDenseLSolve(self, eqs, variables):
+        '''Returns coeffs defined as the inputs required by
+        fflow.AlgNumericDenseLSolve.'''
+        return self._ToDenseLSolveCoeffs(self.ToRatNumList, eqs, variables)
+
+    def DenseSolve(self, eqs, variables, parameters=None,
+                   indep_vars_only=False, only_non_homogeneous = False,
+                   start_mod=0, max_primes=0, max_deg=0, dbginfo=0, polymethod=0,
+                   n_threads=0, needed_vars=None):
+        '''Returns a dictionary with the solution of the linear system.
+
+        '''
+
+        if parameters is None:
+            parameters = set()
+            varset = set(variables)
+            for eq in eqs:
+                parameters.update(self.VariablesIn(eq)-varset)
+            parameters = list(parameters)
+
+        if not needed_vars is None:
+            needed_vars = _ff.PositionsInList(needed_vars, variables)
+
+        with _ff.GraphContextWithInput(len(parameters)) as (g,inp):
+
+            if len(parameters) > 0:
+                ccs = self.ToAnalyticDenseLSolve(parameters, eqs, variables)
+                ls = _ff.AlgAnalyticDenseLSolve(g, inp,
+                                                len(eqs), len(variables), ccs,
+                                                needed_vars=needed_vars)
+            else:
+                ccs = self.ToNumericDenseLSolve(eqs, variables)
+                ls = _ff.AlgNumericDenseLSolve(g,
+                                               len(eqs), len(variables), ccs,
+                                               needed_vars=needed_vars)
+            _ff.SetOutputNode(g,ls)
+
+            if only_non_homogeneous:
+                _ff.LSolveOnlyNonHomogeneous(g,ls)
+
+            _ff.LearnEx(g,prime_no=start_mod)
+
+            if indep_vars_only:
+                indepvars = _ff.LSolveIndepVars(g,ls)
+                indepvars = list(variables[idx] for idx in indepvars)
+                return indepvars
 
             if len(parameters) > 0:
                 rec = _ff.ReconstructFunction(g,

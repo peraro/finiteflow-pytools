@@ -18,12 +18,38 @@ eqs = [
     Eq(x + 3*y + 13*z, (c+1)/(c-1))
 ]
 
+def check_sol(eqs,sol,num=dict()):
+    return list(Together((eq.args[0]-eq.args[1]).xreplace(num).xreplace(sol))
+                .as_numer_denom()[0].expand() \
+                for eq in eqs)
+
 print("Test SparseSolve")
 sol = SparseSolve(eqs,[x,y,z])
 print("-> ",sol)
-print("-> ", list(Together((eq.args[0]-eq.args[1]).xreplace(sol))
-                  .as_numer_denom()[0].expand() \
-                  for eq in eqs))
+print("-> ", check_sol(eqs,sol))
+
+print("Test DenseSolve")
+sol = DenseSolve(eqs,[x,y,z])
+print("-> ",sol)
+print("-> ", check_sol(eqs,sol))
+
+print("Test DenseSolve with zeroes and indep. vars")
+eqs2 = [Eq(x, 0), Eq(y,a)]
+sol = DenseSolve(eqs2,[x,y,z])
+print("-> ",sol)
+print("-> ", check_sol(eqs2,sol))
+
+print("Test SparseSolve numerical")
+npt = {a : 12, b : 21, c : 42}
+neqs = [eq.xreplace(npt) for eq in eqs]
+sol = SparseSolve(neqs,[x,y,z])
+print("-> ",sol)
+print("-> ", check_sol(eqs,sol,num=npt))
+
+print("Test DenseSolve numerical")
+sol = DenseSolve(neqs,[x,y,z])
+print("-> ",sol)
+print("-> ", check_sol(eqs,sol,num=npt))
 
 params = [a,b,c]
 xs = [x,y,z]

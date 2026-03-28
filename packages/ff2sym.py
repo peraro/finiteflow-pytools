@@ -114,7 +114,7 @@ def ToNumericSparseLSolve(eqs, variables):
 
 def LSolveDict(graph,node,variables,graphout):
     '''LSolveDict(graph,node,variables,graphout) where node is a
-    sparse solver node of the specified graph and graphout is its
+    linear solver node of the specified graph and graphout is its
     output converted to SymPy, returns a dictionary with the solution.
     The keys of the dictionary are the dependent variables, i.e. those
     for which a solution was found.
@@ -142,6 +142,29 @@ def SparseSolve(eqs, variables,
                             max_deg=max_deg, dbginfo=dbginfo,
                             polymethod=polymethod,
                             n_threads=n_threads, needed_vars=needed_vars)
+
+def ToAnalyticDenseLSolve(params, eqs, variables):
+    '''Returns coeffs defined as the inputs required by
+    fflow.AlgAnalyticDenseLSolve.'''
+    return _cas.ToAnalyticDenseLSolve(params, eqs, variables)
+
+def ToNumericDenseLSolve(eqs, variables):
+    '''Returns coeffs defined as the inputs required by
+    fflow.AlgNumericDenseLSolve.'''
+    return _cas.ToNumericDenseLSolve(eqs, variables)
+
+def DenseSolve(eqs, variables, parameters=None,
+               indep_vars_only=False, only_non_homogeneous = False,
+               start_mod=0, max_primes=0, max_deg=0, dbginfo=0, polymethod=0,
+               n_threads=0, needed_vars=None):
+    '''Returns a dictionary with the solution of the linear system.'''
+    return _cas.DenseSolve(eqs, variables, parameters=parameters,
+                           indep_vars_only=indep_vars_only,
+                           only_non_homogeneous = only_non_homogeneous,
+                           start_mod=start_mod, max_primes=max_primes,
+                           max_deg=max_deg, dbginfo=dbginfo,
+                           polymethod=polymethod,
+                           n_threads=n_threads, needed_vars=needed_vars)
 
 def FromLaurentOutput(graph,node,ccs,expvar):
     '''Convert the output of a Laurent expansion node, i.e. the
