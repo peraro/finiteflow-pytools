@@ -57,6 +57,9 @@ class _CAS(_ff2cas.CAS):
     def VariablesIn(self,expr):
         return expr.free_symbols
 
+    def IsZero(self,expr):
+        return expr.is_zero
+
 
 _cas = _CAS()
 

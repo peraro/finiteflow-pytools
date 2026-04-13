@@ -49,6 +49,10 @@ class CAS:
         '''Returns a list of variables appearing in the expression'''
         raise NotImplementedError()
 
+    def IsZero(self,expr):
+        '''Checks if an expression is zero'''
+        raise NotImplementedError()
+
 
     # Optional methods
 
@@ -132,7 +136,7 @@ class CAS:
             thisrowcols = []
             for x,cc in lhs.items():
                 thisrowcols.append((var2col[x],cc))
-            if not rhs.is_zero:
+            if not self.IsZero(rhs):
                 thisrowcols.append((len(variables),rhs))
             thisrowcols.sort(key = lambda x : x[0])
             cols.append(list(cc for cc,_ in thisrowcols))
@@ -291,7 +295,7 @@ class CAS:
             thisrowcols = [zero for _ in range(n_vars+1)]
             for x,cc in lhs.items():
                 thisrowcols[var2col[x]] = cc
-            if not rhs.is_zero:
+            if not self.IsZero(rhs):
                 thisrowcols[n_vars] = rhs
             coeffs.extend(cc for cc in thisrowcols)
         return getclist(coeffs)
