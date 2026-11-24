@@ -26,12 +26,9 @@ def CoefficientRules(poly,variables,varset=None):
     for term,cc in p.items():
         if not cc == 0:
             termdict = term.as_powers_dict()
-            ruleterm = Integer(1)
             rulecc = cc
             for b,e in termdict.items():
-                if b in varset:
-                    ruleterm *= b**e
-                else:
+                if b not in varset:
                     rulecc *= b**e
             ruleterm = tuple(termdict[v] for v in variables)
             crules[ruleterm] += rulecc
