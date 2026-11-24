@@ -247,6 +247,13 @@ def FromCoeffsAndExponents(coefficients,variables,exponents):
     coefficients, variables and exponent data.'''
     return _cas.FromCoeffsAndExponents(coefficients,variables,exponents)
 
+# Symengine changed how Dummy symbols are converted to strings at some
+# point.  This definition of `_dummy_prefix` makes it compatible with
+# both new and older versions.
+_dummy_sym = 't'
+_dummy_prefix = '_t' if str(_s.Dummy('t')) == '_t' else 't'
+
 def AlgToExprEval(graph, in_node, expressions, variables):
     return _ff2symse_common.AlgToExprEval(_s, graph, in_node,
-                                          expressions, variables)
+                                          expressions, variables,
+                                          _dummy_sym, _dummy_prefix)

@@ -136,3 +136,17 @@ with GraphContextWithInput(len(xs)) as (g,inp):
         rec = FromRatFunList([z],ReconstructFunction(g2))
         rec = dict(zip(rcs,rec))
         print("-> ", out[0].xreplace(rec) == func[0].xreplace(conv))
+
+
+with GraphContextWithInput(3) as (g,inp):
+    variables = x, y, z
+    expr = [(-Rational(1, 3433683820292512484657849089281)
+             - x**(-1) - y**2)**(-2),
+            (x**2 - y**(-1))*(1 + z**(-2))**2]
+
+    node = AlgToExprEval(g, inp, expr, variables)
+    SetOutputNode(g, node)
+    rec = FromRatFunList(variables, ReconstructFunction(g))
+
+    print("-> ", [Together(x-y).expand()
+                  for (x,y) in zip(rec,expr)] == [0,0])

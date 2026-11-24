@@ -22,10 +22,12 @@ def FastNumerDenom(mod,expr):
             num.add(k**v)
     return mod.Mul(*num), mod.Mul(*den)
 
-def AlgToExprEval(mod, graph, in_node, expressions, variables):
-    dummies = tuple(mod.Dummy("t"+str(i)) for i in range(len(variables)))
+def AlgToExprEval(mod, graph, in_node, expressions, variables,
+                  dummy_prefix, variable_prefix):
+    dummies = tuple(mod.Dummy(dummy_prefix+str(i))
+                    for i in range(len(variables)))
     todummies = dict(zip(variables,dummies))
     strfuns = [str(fun.xreplace(todummies)) for fun in expressions]
     return _ff.AlgRatExprEval(graph, in_node, strfuns,
-                              variable_prefix='_t',
+                              variable_prefix=variable_prefix,
                               n_vars=len(variables))

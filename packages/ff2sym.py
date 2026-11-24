@@ -180,9 +180,15 @@ def FromCoeffsAndExponents(coefficients,variables,exponents):
     coefficients, variables and exponent data.'''
     return _cas.FromCoeffsAndExponents(coefficients,variables,exponents)
 
+# This shouldn't be needed for SymPy, but we add it for safety in case
+# they change the string representation of Dummy (as Symengine did).
+_dummy_sym = 't'
+_dummy_prefix = '_t' if str(_s.Dummy('t')) == '_t' else 't'
+
 def AlgToExprEval(graph, in_node, expressions, variables):
     return _ff2symse_common.AlgToExprEval(_s, graph, in_node,
-                                          expressions, variables)
+                                          expressions, variables,
+                                          _dummy_sym, _dummy_prefix)
 
 
 # These are extra utilities to convert to/from Mathematica expressions
