@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finiteflow-pytools"
+version = "1.0.0"
+authors = [{ name = "Tiziano Peraro" }]
+description = "A collection of tools using the Python interface of FiniteFlow."
+readme = "README_PYPI.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.8"
+dependencies = ["finiteflow"]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+]
+
+[project.optional-dependencies]
+sympy = ["sympy"]
+symengine = ["symengine"]
+all = ["finiteflow-pytools[sympy,symengine]"]
+
+[project.urls]
+Homepage = "https://github.com/peraro/finiteflow-pytools"
+
+[tool.setuptools]
+package-dir = {"" = "packages"}
+py-modules = ["ff2cas", "ff2sym", "ff2se", "_ff2symse_common"]
