@@ -150,7 +150,7 @@ def FromRatFunList(variables, functions):
 
 def FromRatNumList(nums):
     '''Convert a list strings into SymEngine rational numbers.'''
-    return _cas.FromRatFunList(nums)
+    return _cas.FromRatNumList(nums)
 
 def ToRatNumList(nums):
     '''Convert a list of SymEngine rational numbers into strings.'''

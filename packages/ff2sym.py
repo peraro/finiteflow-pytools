@@ -83,7 +83,7 @@ def FromRatFunList(variables, functions):
 
 def FromRatNumList(nums):
     '''Convert a list strings into SymPy rational numbers.'''
-    return _cas.FromRatFunList(nums)
+    return _cas.FromRatNumList(nums)
 
 def ToRatNumList(nums):
     '''Convert a list of SymPy rational numbers into strings.'''
